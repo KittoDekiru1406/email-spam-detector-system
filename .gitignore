@@ -1,2 +1,3 @@
 /weights
-/pycache
+__pycache__
+/configs
