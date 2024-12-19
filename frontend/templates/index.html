@@ -19,44 +19,42 @@
         h1, p, .text-white {
             color: #ffffff;
         }
-        .text-gray-200 {
-            color: #d1d5db;
-        }
-        input::placeholder, select {
-            color: #e2e8f0;
-        }
         table {
             width: 100%;
             border-collapse: collapse;
         }
-        table, th, td {
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
         th, td {
-            padding: 8px;
+            padding: 10px;
             text-align: left;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
         th {
             background-color: rgba(255, 255, 255, 0.2);
             color: #ffffff;
         }
+        td {
+            color: #ffffff;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
         .spam {
-            color: red;
+            color: #ff4d4d; /* Màu đỏ cho spam */
+            font-weight: bold;
         }
         .not-spam {
-            color: green;
+            color: #4caf50; /* Màu xanh cho not spam */
+            font-weight: bold;
         }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-6">
-    <div class="w-full max-w-md glass-morphism p-8 rounded-2xl shadow-2xl">
+    <div class="w-full max-w-2xl glass-morphism p-8 rounded-2xl shadow-2xl">
         <div class="text-center mb-8">
             <i class="fas fa-shield-alt text-6xl text-white mb-4"></i>
             <h1 class="text-4xl font-bold text-white">Spam Shield</h1>
             <p class="text-gray-200 mt-2">Bảo vệ hộp thư của bạn</p>
         </div>
         
-        <form id="emailForm" class="space-y-6" action="/predict/" method="post">
+        <form id="emailForm" class="space-y-6">
             <div class="relative">
                 <i class="fas fa-envelope absolute left-4 top-1/2 transform -translate-y-1/2 text-purple-500"></i>
                 <input 
@@ -115,7 +113,7 @@
                         </tr>
                     </thead>
                     <tbody id="resultTable">
-                        <!-- Kết quả sẽ được chèn ở đây -->
+                        <!-- Kết quả sẽ được chèn vào đây -->
                     </tbody>
                 </table>
             </div>
@@ -123,52 +121,49 @@
     </div>
 
     <script>
-        document.getElementById('emailForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const email_count = parseInt(document.getElementById('email_count').value);
-            const resultSection = document.getElementById('resultSection');
-            const resultTable = document.getElementById('resultTable');
-            
-            if (!username || !password || !email_count) {
-                alert('Vui lòng nhập đầy đủ thông tin');
-                return;
-            }
+       document.getElementById('emailForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    const email_count = parseInt(document.getElementById('email_count').value);
+    const resultSection = document.getElementById('resultSection');
+    const resultTable = document.getElementById('resultTable');
+    
+    if (!username || !password || !email_count) {
+        alert('Vui lòng nhập đầy đủ thông tin');
+        return;
+    }
 
-            fetch('/predict/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    username: username,
-                    password: password,
-                    email_count: email_count
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Reset bảng kết quả
-                resultTable.innerHTML = '';
+    fetch('/predict/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password, email_count })
+    })
+    .then(response => response.json())
+    .then(data => {
+        resultTable.innerHTML = ''; // Xóa bảng cũ
 
-                for (const [subject, status] of Object.entries(data)) {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${subject.split(": ").slice(1).join(": ")}</td>
-                        <td class="${status === 'spam' ? 'spam' : 'not-spam'}">${status}</td>
-                    `;
-                    resultTable.appendChild(row);
-                }
+        // Kiểm tra nếu dữ liệu có key "results"
+        const results = data.results ? JSON.parse(data.results) : data;
 
-                document.getElementById('resultSection').classList.remove('hidden');
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Có lỗi xảy ra khi phân tích email');
-            });
+        // Lặp qua từng Subject và trạng thái để hiển thị trong bảng
+        Object.entries(results).forEach(([subject, status]) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="px-4 py-2">${subject}</td>
+                <td class="px-4 py-2 ${status === 'spam' ? 'spam' : 'not-spam'}">${status}</td>
+            `;
+            resultTable.appendChild(row);
         });
+
+        resultSection.classList.remove('hidden'); // Hiện bảng kết quả
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Có lỗi xảy ra khi phân tích email');
+    });
+});
     </script>
 </body>
 </html>
