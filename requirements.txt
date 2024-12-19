@@ -3,3 +3,5 @@ numpy
 scikit-learn
 nltk
 fastapi
+uvicorn
+Jinja2
